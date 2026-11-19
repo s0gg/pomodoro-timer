@@ -1,0 +1,14 @@
+id: no-browser-api-in-logic
+language: typescript
+severity: error
+message: Do not use DOM or browser APIs in the logic layer. Use them from src/main.ts.
+note: |
+  Every module other than src/main.ts is pure logic that is also loaded by tests running on Node.
+  Side effects such as the DOM, timers, storage and notifications belong in src/main.ts.
+files:
+  - src/**/*.ts
+ignores:
+  - src/main.ts
+rule:
+  kind: identifier
+  regex: ^(window|document|navigator|location|history|localStorage|sessionStorage|Notification|AudioContext|setTimeout|setInterval|requestAnimationFrame)$

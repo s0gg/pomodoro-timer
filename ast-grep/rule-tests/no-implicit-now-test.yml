@@ -1,0 +1,9 @@
+id: no-implicit-now
+valid:
+  - 'export const tick = (timer: Timer, now: number): Timer => advance(timer, now);'
+  - 'const at = new Date(now);'
+  - 'const label = obj.now();'
+invalid:
+  - 'const now = Date.now();'
+  - 'const at = new Date();'
+  - 'const t = performance.now();'

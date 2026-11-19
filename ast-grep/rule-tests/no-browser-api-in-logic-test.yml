@@ -1,0 +1,12 @@
+id: no-browser-api-in-logic
+valid:
+  - 'const phase = timer.schedule[timer.phaseIndex];'
+  - 'const view = { document: 1, window: 2 };'
+  - 'const title = vm.document;'
+  - 'type N = Notification;'
+invalid:
+  - 'document.title = "x";'
+  - 'const w = window.innerWidth;'
+  - 'localStorage.setItem("k", "v");'
+  - 'setInterval(() => update(), 250);'
+  - 'new Notification("title");'

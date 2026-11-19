@@ -1,0 +1,11 @@
+id: no-inner-html
+language: typescript
+severity: error
+message: Do not insert HTML strings directly. Use textContent or createElement instead.
+note: Building HTML from strings can lead to XSS.
+rule:
+  any:
+    - pattern: $EL.innerHTML = $VALUE
+    - pattern: $EL.outerHTML = $VALUE
+    - pattern: $EL.insertAdjacentHTML($$$ARGS)
+    - pattern: document.write($$$ARGS)

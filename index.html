@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>25:00 Work | Pomodoro</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./src/main.ts"></script>
+  </head>
+  <body data-phase="work" data-status="idle">
+    <main class="app">
+      <h1 class="visually-hidden">Pomodoro Timer</h1>
+
+      <p id="phase" class="phase" aria-live="polite">Work</p>
+
+      <div class="dial">
+        <svg class="ring" viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="ring-track" cx="110" cy="110" r="100" />
+          <circle id="ring-progress" class="ring-progress" cx="110" cy="110" r="100" />
+        </svg>
+        <div id="time" class="time" role="timer">25:00</div>
+      </div>
+
+      <ol id="steps" class="steps" aria-label="Progress through the set"></ol>
+
+      <div class="controls">
+        <button id="reset" class="btn btn-sub" type="button">Reset</button>
+        <button id="primary" class="btn btn-primary" type="button">Start</button>
+        <button id="skip" class="btn btn-sub" type="button">Skip</button>
+      </div>
+
+      <label class="option">
+        <input id="sound" type="checkbox" checked />
+        Play a sound when the phase changes
+      </label>
+      <p class="hint"><kbd>Space</kbd> to start / pause</p>
+    </main>
+  </body>
+</html>

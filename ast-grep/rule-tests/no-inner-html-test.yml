@@ -1,0 +1,10 @@
+id: no-inner-html
+valid:
+  - 'el.textContent = label;'
+  - 'const html = el.innerHTML;'
+  - 'el.append(document.createElement("span"));'
+invalid:
+  - 'li.innerHTML = "<span></span>";'
+  - 'el.outerHTML = html;'
+  - 'el.insertAdjacentHTML("beforeend", html);'
+  - 'document.write(html);'

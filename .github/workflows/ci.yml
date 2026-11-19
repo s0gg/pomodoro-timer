@@ -1,0 +1,76 @@
+# On push to main: run the checks, then deploy to GitHub Pages. On pull requests: checks only.
+# Actions are pinned to commit SHAs to guard against supply-chain attacks (comments show the tag).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Installs pnpm and Node.js from packageManager in package.json and .node-version,
+      # then runs pnpm install --frozen-lockfile
+      - uses: pnpm/setup@731dfb6463bbd11c11fd0ee11fe00ed0e36d48a1 # v3.2.0
+        with:
+          cache: true
+          require-lockfile: true
+
+      - name: Format (oxfmt)
+        run: pnpm run format:check
+
+      - name: Lint (oxlint + type-aware via tsrs)
+        run: pnpm run lint
+
+      - name: Lint (ast-grep)
+        run: pnpm run lint:ast
+
+      - name: Typecheck (tsrs)
+        run: pnpm run typecheck
+
+      - name: Test (vitest)
+        run: pnpm run test
+
+      - name: Build (vite)
+        run: pnpm run build
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write # deploy to Pages
+      id-token: write # issue the OIDC token used to verify the deployment source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -1,0 +1,16 @@
+id: no-implicit-now
+language: typescript
+severity: error
+message: Do not read the current time in the logic layer. Take it as the `now` argument instead.
+note: |
+  Keeping the timer logic as pure functions that take `now` as an argument makes time-dependent tests deterministic.
+  Only the DOM layer (src/main.ts) reads the current time.
+files:
+  - src/**/*.ts
+ignores:
+  - src/main.ts
+rule:
+  any:
+    - pattern: Date.now()
+    - pattern: new Date()
+    - pattern: performance.now()
