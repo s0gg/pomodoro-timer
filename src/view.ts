@@ -1,4 +1,4 @@
-import { formatTime } from './format';
+import { formatClock, formatTime } from './format';
 import type { PhaseType } from './schedule';
 import { currentPhase, getRemainingMs, type Timer, type TimerStatus } from './timer';
 
@@ -14,6 +14,8 @@ export interface StepViewModel {
 
 export interface ViewModel {
   readonly timeText: string;
+  /** Current local time of day ("HH:MM") */
+  readonly clockText: string;
   readonly phaseType: PhaseType | 'finished';
   readonly phaseLabel: string;
   readonly status: TimerStatus;
@@ -51,6 +53,7 @@ export function toViewModel(timer: Timer, now: number): ViewModel {
 
   return {
     timeText,
+    clockText: formatClock(now),
     phaseType: isFinished ? 'finished' : phase.type,
     phaseLabel,
     status: timer.status,

@@ -10,6 +10,7 @@ function query<T extends Element>(selector: string, type: { new (): T; prototype
 }
 
 const els = {
+  clock: query('#clock', HTMLElement),
   phase: query('#phase', HTMLElement),
   time: query('#time', HTMLElement),
   ring: query('#ring-progress', SVGCircleElement),
@@ -79,6 +80,7 @@ function render(): void {
   document.body.dataset.phase = vm.phaseType;
   document.body.dataset.status = vm.status;
   document.title = vm.documentTitle;
+  setText(els.clock, vm.clockText);
   setText(els.phase, vm.phaseLabel);
   setText(els.time, vm.timeText);
   setText(els.primary, vm.primaryLabel);

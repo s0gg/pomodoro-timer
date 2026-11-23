@@ -49,6 +49,12 @@ describe('toViewModel', () => {
     expect(vm.progress).toBe(1);
   });
 
+  test('clock shows the current local time regardless of the timer state', () => {
+    const now = new Date(2026, 10, 23, 10, 32, 45).getTime();
+    expect(toViewModel(idle(), now).clockText).toBe('10:32');
+    expect(toViewModel(running(), now).clockText).toBe('10:32');
+  });
+
   test('tab title shows the remaining time and phase', () => {
     expect(toViewModel(running(), T0 + 5 * MIN).documentTitle).toBe('20:00 Work | Pomodoro');
   });

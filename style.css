@@ -74,6 +74,17 @@ body {
   white-space: nowrap;
 }
 
+/* Current time of day: as large as possible while still fitting a narrow window */
+.clock {
+  margin: 0;
+  font-size: clamp(3.5rem, 24vw, 7.5rem);
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 /* Phase name */
 .phase {
   margin: 0;

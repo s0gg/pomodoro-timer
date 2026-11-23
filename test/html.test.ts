@@ -28,3 +28,9 @@ test('the static markup matches the initial render', () => {
   expect(textById('time')).toBe(initial.timeText);
   expect(textById('primary')).toBe(initial.primaryLabel);
 });
+
+// The current time depends on when and where the page is opened, so the static markup only
+// holds a placeholder of the same width until main.ts renders.
+test('the clock starts as a placeholder', () => {
+  expect(textById('clock')).toBe('--:--');
+});
