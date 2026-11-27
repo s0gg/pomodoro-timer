@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vite-plus/test';
 import { POMODORO_SET, type Schedule } from '../src/schedule';
 import { createTimer, pause, skip, start, tick, type Timer } from '../src/timer';
 import { toViewModel, transitionMessage } from '../src/view';

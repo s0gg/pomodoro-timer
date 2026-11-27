@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { beforeAll, expect, test } from 'vitest';
+import { beforeAll, expect, test } from 'vite-plus/test';
 import { POMODORO_SET } from '../src/schedule';
 import { createTimer } from '../src/timer';
 import { toViewModel, type ViewModel } from '../src/view';

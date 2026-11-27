@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test } from 'vite-plus/test';
 import { POMODORO_SET } from '../src/schedule';
 
 const MINUTE = 60_000;
