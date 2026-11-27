@@ -42,6 +42,22 @@
         <input id="sound" type="checkbox" checked />
         Play a sound when the phase changes
       </label>
+      <label class="option volume">
+        Volume
+        <input
+          id="volume"
+          type="range"
+          min="0"
+          max="200"
+          step="5"
+          value="100"
+          list="volume-default"
+        />
+        <output id="volume-value" for="volume">100%</output>
+      </label>
+      <datalist id="volume-default">
+        <option value="100"></option>
+      </datalist>
       <p class="hint"><kbd>Space</kbd> to start / pause</p>
     </main>
   </body>

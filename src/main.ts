@@ -1,5 +1,6 @@
 // Thin layer that only wires things up to the DOM. The logic lives in timer.ts / view.ts.
 import { POMODORO_SET, type PhaseType } from './schedule';
+import { chimeTones, formatVolume } from './sound';
 import { createTimer, pause, reset, skip, start, tick, type Timer } from './timer';
 import { toViewModel, transitionMessage, type Notice, type StepState } from './view';
 
@@ -19,6 +20,8 @@ const els = {
   skip: query('#skip', HTMLButtonElement),
   reset: query('#reset', HTMLButtonElement),
   sound: query('#sound', HTMLInputElement),
+  volume: query('#volume', HTMLInputElement),
+  volumeValue: query('#volume-value', HTMLOutputElement),
 };
 
 const RING_LENGTH = 2 * Math.PI * els.ring.r.baseVal.value;
@@ -116,19 +119,24 @@ function chime(): void {
   const ctx = audioCtx;
   if (!ctx || !els.sound.checked) return;
   const t0 = ctx.currentTime;
-  [880, 660, 880].forEach((frequency, i) => {
-    const at = t0 + i * 0.28;
+  for (const tone of chimeTones(els.volume.valueAsNumber)) {
+    const at = t0 + tone.offset;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.value = frequency;
+    osc.frequency.value = tone.frequency;
     gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(0.3, at + 0.02);
+    gain.gain.exponentialRampToValueAtTime(tone.peakGain, at + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.25);
     osc.connect(gain).connect(ctx.destination);
     osc.start(at);
     osc.stop(at + 0.26);
-  });
+  }
+}
+
+function renderVolume(): void {
+  els.volume.disabled = !els.sound.checked;
+  setText(els.volumeValue, formatVolume(els.volume.valueAsNumber));
 }
 
 function requestNotificationPermission(): void {
@@ -176,6 +184,14 @@ els.primary.addEventListener('click', togglePrimary);
 els.skip.addEventListener('click', () => update(skip));
 els.reset.addEventListener('click', () => update(reset));
 
+els.sound.addEventListener('change', renderVolume);
+els.volume.addEventListener('input', renderVolume);
+// Play the chime at the new volume once the slider is released, so you can hear how loud it is
+els.volume.addEventListener('change', () => {
+  prepareAudio();
+  chime();
+});
+
 document.addEventListener('keydown', (event) => {
   if (event.code !== 'Space' || event.repeat) return;
   if (event.target instanceof Element && event.target.closest('button, input, textarea, select')) {
@@ -188,3 +204,4 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('visibilitychange', () => update());
 setInterval(() => update(), 250);
 render();
+renderVolume();

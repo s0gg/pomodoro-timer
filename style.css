@@ -270,6 +270,23 @@ body[data-status='paused'] .time {
   accent-color: var(--accent);
 }
 
+/* Volume slider. The tick from its datalist marks the default (100%) in the middle */
+.volume input {
+  width: 10rem;
+  cursor: pointer;
+}
+
+.volume input:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.volume output {
+  min-width: 3.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .hint {
   margin: 0;
   font-size: 0.8rem;

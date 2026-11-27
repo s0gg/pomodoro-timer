@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { beforeAll, expect, test } from 'vite-plus/test';
 import { POMODORO_SET } from '../src/schedule';
+import { formatVolume, VOLUME } from '../src/sound';
 import { createTimer } from '../src/timer';
 import { toViewModel, type ViewModel } from '../src/view';
 
@@ -17,6 +18,12 @@ function textById(id: string): string | undefined {
   return new RegExp(`\\sid="${id}"[^>]*>([^<]*)<`).exec(html)?.[1]?.trim();
 }
 
+/** Value of an attribute on the element with the given id. */
+function attrById(id: string, name: string): string | undefined {
+  const tag = new RegExp(`<[^>]*\\sid="${id}"[^>]*>`).exec(html)?.[0] ?? '';
+  return new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1];
+}
+
 test('the document language is English', () => {
   expect(html).toMatch(/<html lang="en">/);
 });
@@ -27,6 +34,22 @@ test('the static markup matches the initial render', () => {
   expect(textById('phase')).toBe(initial.phaseLabel);
   expect(textById('time')).toBe(initial.timeText);
   expect(textById('primary')).toBe(initial.primaryLabel);
+});
+
+test('the volume slider covers the range and starts at the default volume', () => {
+  expect(attrById('volume', 'type')).toBe('range');
+  expect(attrById('volume', 'min')).toBe(String(VOLUME.min));
+  expect(attrById('volume', 'max')).toBe(String(VOLUME.max));
+  expect(attrById('volume', 'step')).toBe(String(VOLUME.step));
+  expect(attrById('volume', 'value')).toBe(String(VOLUME.default));
+  expect(textById('volume-value')).toBe(formatVolume(VOLUME.default));
+});
+
+test('the volume slider marks the default volume', () => {
+  const list = attrById('volume', 'list');
+  expect(list).toBeDefined();
+  const datalist = new RegExp(`<datalist id="${list}">([\\s\\S]*?)</datalist>`).exec(html)?.[1];
+  expect(datalist).toContain(`<option value="${VOLUME.default}">`);
 });
 
 // The current time depends on when and where the page is opened, so the static markup only

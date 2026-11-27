@@ -5,6 +5,7 @@ A Pomodoro timer that runs in the browser. One set is 25 min work → 5 min brea
 - Moves on to the next phase automatically and lets you know with a chime and a desktop notification (permission is requested the first time you start)
 - Stops after the long break; press "Next set" to start another one
 - `Space` starts / pauses the timer, and there are Skip and Reset buttons
+- The volume slider starts at the default chime volume (100%, marked in the middle) and goes from silent (0%) to twice as loud (200%); the chime plays at the new volume when you release it
 
 ## Development
 
@@ -74,4 +75,5 @@ The first time only, set **Settings → Pages → Build and deployment → Sourc
 | `src/timer.ts`    | Timer state transitions (pure functions)              |
 | `src/view.ts`     | Display values and notification text (pure functions) |
 | `src/format.ts`   | `MM:SS` formatting                                    |
+| `src/sound.ts`    | The chime's tones and volume (pure functions)         |
 | `src/main.ts`     | Wiring to the DOM, notifications and sound            |
