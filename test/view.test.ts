@@ -8,7 +8,8 @@ const T0 = 1_700_000_000_000;
 
 const idle = (): Timer => createTimer(POMODORO_SET);
 const running = (): Timer => start(idle(), T0);
-const finished = (): Timer => tick(running(), T0 + 100 * MIN);
+const STOP_AFTER_SET = { autoNextSet: false };
+const finished = (): Timer => tick(running(), T0 + 100 * MIN, STOP_AFTER_SET);
 
 describe('toViewModel', () => {
   test('idle: 25:00 / Work / Start / no progress', () => {
@@ -120,9 +121,18 @@ describe('transitionMessage', () => {
     expect(transitionMessage(prev, next)?.body).toBe('1 pomodoro done! Take a longer rest.');
   });
 
-  test('long break → set complete', () => {
+  test('long break → next set (the default)', () => {
     const prev = tick(running(), T0 + 85 * MIN);
     const next = tick(prev, T0 + 100 * MIN);
+    expect(transitionMessage(prev, next)).toEqual({
+      title: 'Set complete!',
+      body: 'You finished a full set. Great job! The next set has started.',
+    });
+  });
+
+  test('long break → set complete, when the next set does not start automatically', () => {
+    const prev = tick(running(), T0 + 85 * MIN);
+    const next = tick(prev, T0 + 100 * MIN, STOP_AFTER_SET);
     expect(transitionMessage(prev, next)).toEqual({
       title: 'Set complete!',
       body: 'You finished a full set. Great job!',

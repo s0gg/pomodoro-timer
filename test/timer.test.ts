@@ -3,6 +3,7 @@ import { POMODORO_SET } from '../src/schedule';
 import {
   createTimer,
   currentPhase,
+  DEFAULT_TIMER_OPTIONS,
   getRemainingMs,
   pause,
   reset,
@@ -17,6 +18,7 @@ const MIN = 60_000;
 const T0 = 1_700_000_000_000;
 
 const startedTimer = (): Timer => start(createTimer(POMODORO_SET), T0);
+const STOP_AFTER_SET = { autoNextSet: false };
 
 describe('createTimer', () => {
   test('starts idle in the first work phase', () => {
@@ -29,6 +31,13 @@ describe('createTimer', () => {
 
   test('throws on an empty schedule', () => {
     expect(() => createTimer([])).toThrow('schedule must contain at least one phase');
+  });
+
+  // A set with no length would make the next set start over and over without time passing
+  test('throws on a phase without a positive duration', () => {
+    expect(() => createTimer([{ type: 'work', label: 'Work', durationMs: 0 }])).toThrow(
+      'every phase must last longer than 0 ms',
+    );
   });
 });
 
@@ -106,24 +115,52 @@ describe('tick', () => {
     expect(visited).toEqual([25, 5, 25, 5, 25, 15]);
   });
 
-  test('stops with the set finished after the long break, back at the first work phase', () => {
-    const done = tick(startedTimer(), T0 + 100 * MIN);
+  test('does not advance while paused, however much time passes', () => {
+    const paused = pause(startedTimer(), T0 + SEC);
+    expect(tick(paused, T0 + 60 * MIN)).toBe(paused);
+  });
+});
+
+describe('tick at the end of a set', () => {
+  test('starting the next set automatically is the default', () => {
+    expect(DEFAULT_TIMER_OPTIONS.autoNextSet).toBe(true);
+  });
+
+  test('by default, the next set starts right after the long break', () => {
+    const next = tick(startedTimer(), T0 + 100 * MIN);
+    expect(next.status).toBe('running');
+    expect(next.phaseIndex).toBe(0);
+    expect(getRemainingMs(next, T0 + 100 * MIN)).toBe(25 * MIN);
+  });
+
+  test('the next set is timed from the scheduled end of the previous one (no drift)', () => {
+    // One set is 100 min: 110 min in is 10 min into the next set's first work phase
+    const next = tick(startedTimer(), T0 + 110 * MIN);
+    expect(next.phaseIndex).toBe(0);
+    expect(getRemainingMs(next, T0 + 110 * MIN)).toBe(15 * MIN);
+  });
+
+  test('keeps going through as many sets as have passed', () => {
+    // 2 sets (200 min) + 25 + 5 + 2 min → 2 min into the 3rd phase of the 3rd set
+    const next = tick(startedTimer(), T0 + 232 * MIN);
+    expect(next.status).toBe('running');
+    expect(next.phaseIndex).toBe(2);
+    expect(getRemainingMs(next, T0 + 232 * MIN)).toBe(23 * MIN);
+  });
+
+  test('when turned off, stops with the set finished, back at the first work phase', () => {
+    const done = tick(startedTimer(), T0 + 100 * MIN, STOP_AFTER_SET);
     expect(done.status).toBe('finished');
     expect(done.phaseIndex).toBe(0);
     expect(getRemainingMs(done, T0 + 200 * MIN)).toBe(25 * MIN);
   });
 
   test('starting after the set is finished begins a new set', () => {
-    const done = tick(startedTimer(), T0 + 100 * MIN);
+    const done = tick(startedTimer(), T0 + 100 * MIN, STOP_AFTER_SET);
     const again = start(done, T0 + 101 * MIN);
     expect(again.status).toBe('running');
     expect(again.phaseIndex).toBe(0);
     expect(getRemainingMs(again, T0 + 101 * MIN)).toBe(25 * MIN);
-  });
-
-  test('does not advance while paused, however much time passes', () => {
-    const paused = pause(startedTimer(), T0 + SEC);
-    expect(tick(paused, T0 + 60 * MIN)).toBe(paused);
   });
 });
 
@@ -143,11 +180,27 @@ describe('skip', () => {
     expect(getRemainingMs(skipped, T0 + 10 * MIN)).toBe(5 * MIN);
   });
 
-  test('skipping the last phase finishes the set', () => {
+  test('skipping the last phase while stopped finishes the set', () => {
     let timer = createTimer(POMODORO_SET);
     for (let i = 0; i < 5; i++) timer = skip(timer, T0);
     expect(currentPhase(timer).type).toBe('longBreak');
     const done = skip(timer, T0);
+    expect(done.status).toBe('finished');
+    expect(done.phaseIndex).toBe(0);
+  });
+
+  test('skipping the long break while running starts the next set now (the set ended)', () => {
+    const longBreak = tick(startedTimer(), T0 + 85 * MIN);
+    expect(currentPhase(longBreak).type).toBe('longBreak');
+    const next = skip(longBreak, T0 + 90 * MIN);
+    expect(next.status).toBe('running');
+    expect(next.phaseIndex).toBe(0);
+    expect(getRemainingMs(next, T0 + 90 * MIN)).toBe(25 * MIN);
+  });
+
+  test('when turned off, skipping the long break while running finishes the set', () => {
+    const longBreak = tick(startedTimer(), T0 + 85 * MIN);
+    const done = skip(longBreak, T0 + 90 * MIN, STOP_AFTER_SET);
     expect(done.status).toBe('finished');
     expect(done.phaseIndex).toBe(0);
   });

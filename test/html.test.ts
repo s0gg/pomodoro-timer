@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { beforeAll, expect, test } from 'vite-plus/test';
 import { POMODORO_SET } from '../src/schedule';
 import { formatVolume, VOLUME } from '../src/sound';
-import { createTimer } from '../src/timer';
+import { createTimer, DEFAULT_TIMER_OPTIONS } from '../src/timer';
 import { toViewModel, type ViewModel } from '../src/view';
 
 let html = '';
@@ -50,6 +50,12 @@ test('the volume slider marks the default volume', () => {
   expect(list).toBeDefined();
   const datalist = new RegExp(`<datalist id="${list}">([\\s\\S]*?)</datalist>`).exec(html)?.[1];
   expect(datalist).toContain(`<option value="${VOLUME.default}">`);
+});
+
+test('the next-set checkbox matches the default', () => {
+  const tag = /<input[^>]*\sid="auto-next-set"[^>]*>/.exec(html)?.[0];
+  expect(tag).toMatch(/\stype="checkbox"/);
+  expect(/\schecked[\s/>]/.test(tag ?? '')).toBe(DEFAULT_TIMER_OPTIONS.autoNextSet);
 });
 
 // The current time depends on when and where the page is opened, so the static markup only

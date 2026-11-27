@@ -91,6 +91,13 @@ export function transitionMessage(prev: Timer, next: Timer): Notice | null {
   if (next.status === 'finished') {
     return { title: 'Set complete!', body: 'You finished a full set. Great job!' };
   }
+  // Wrapped around to an earlier phase: the set ended and the next one started
+  if (next.status === 'running' && next.phaseIndex < prev.phaseIndex) {
+    return {
+      title: 'Set complete!',
+      body: 'You finished a full set. Great job! The next set has started.',
+    };
+  }
   if (next.status === 'running' && next.phaseIndex !== prev.phaseIndex) {
     const phase = currentPhase(next);
     return {

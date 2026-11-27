@@ -3,7 +3,8 @@
 A Pomodoro timer that runs in the browser. One set is 25 min work → 5 min break → 25 min work → 5 min break → 25 min work → 15 min break.
 
 - Moves on to the next phase automatically and lets you know with a chime and a desktop notification (permission is requested the first time you start)
-- Stops after the long break; press "Next set" to start another one
+- After the long break, the next set starts automatically (on by default). Turn off "Start the next set automatically"
+  to stop there instead; then press "Next set" to start another one
 - `Space` starts / pauses the timer, and there are Skip and Reset buttons
 - The volume slider starts at the default chime volume (100%, marked in the middle) and goes from silent (0%) to twice as loud (200%); the chime plays at the new volume when you release it
 

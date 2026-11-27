@@ -1,7 +1,16 @@
 // Thin layer that only wires things up to the DOM. The logic lives in timer.ts / view.ts.
 import { POMODORO_SET, type PhaseType } from './schedule';
 import { chimeTones, formatVolume } from './sound';
-import { createTimer, pause, reset, skip, start, tick, type Timer } from './timer';
+import {
+  createTimer,
+  pause,
+  reset,
+  skip,
+  start,
+  tick,
+  type Timer,
+  type TimerOptions,
+} from './timer';
 import { toViewModel, transitionMessage, type Notice, type StepState } from './view';
 
 function query<T extends Element>(selector: string, type: { new (): T; prototype: T }): T {
@@ -22,6 +31,7 @@ const els = {
   sound: query('#sound', HTMLInputElement),
   volume: query('#volume', HTMLInputElement),
   volumeValue: query('#volume-value', HTMLOutputElement),
+  autoNextSet: query('#auto-next-set', HTMLInputElement),
 };
 
 const RING_LENGTH = 2 * Math.PI * els.ring.r.baseVal.value;
@@ -161,8 +171,10 @@ function notify({ title, body }: Notice): void {
 
 type Action = (timer: Timer, now: number) => Timer;
 
+const timerOptions = (): TimerOptions => ({ autoNextSet: els.autoNextSet.checked });
+
 function advance(): void {
-  const next = tick(timer, Date.now());
+  const next = tick(timer, Date.now(), timerOptions());
   const message = transitionMessage(timer, next);
   timer = next;
   if (message) notify(message);
@@ -181,7 +193,7 @@ function togglePrimary(): void {
 }
 
 els.primary.addEventListener('click', togglePrimary);
-els.skip.addEventListener('click', () => update(skip));
+els.skip.addEventListener('click', () => update((t, now) => skip(t, now, timerOptions())));
 els.reset.addEventListener('click', () => update(reset));
 
 els.sound.addEventListener('change', renderVolume);

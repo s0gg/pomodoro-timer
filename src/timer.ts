@@ -52,9 +52,22 @@ function atPhase(schedule: Schedule, phaseIndex: number, status: StoppedStatus):
   return stopped(schedule, phaseIndex, status, phaseAt(schedule, phaseIndex).durationMs);
 }
 
+export interface TimerOptions {
+  /**
+   * When a set ends while running, start the next set right away. When off, the timer stops with
+   * the set finished.
+   */
+  readonly autoNextSet: boolean;
+}
+
+export const DEFAULT_TIMER_OPTIONS: TimerOptions = Object.freeze({ autoNextSet: true });
+
 export function createTimer(schedule: Schedule): Timer {
   if (schedule.length === 0) {
     throw new Error('schedule must contain at least one phase');
+  }
+  if (schedule.some((phase) => !(phase.durationMs > 0))) {
+    throw new Error('every phase must last longer than 0 ms');
   }
   return atPhase(schedule, 0, 'idle');
 }
@@ -81,22 +94,32 @@ export function reset(timer: Timer): Timer {
   return atPhase(timer.schedule, 0, 'idle');
 }
 
-export function skip(timer: Timer, now: number): Timer {
-  const next = timer.phaseIndex + 1;
-  if (next >= timer.schedule.length) return atPhase(timer.schedule, 0, 'finished');
+export function skip(timer: Timer, now: number, options = DEFAULT_TIMER_OPTIONS): Timer {
+  const isRunning = timer.status === 'running';
+  let next = timer.phaseIndex + 1;
+  if (next >= timer.schedule.length) {
+    if (!isRunning || !options.autoNextSet) return atPhase(timer.schedule, 0, 'finished');
+    next = 0;
+  }
   const skipped = atPhase(timer.schedule, next, 'idle');
-  return timer.status === 'running' ? start(skipped, now) : skipped;
+  return isRunning ? start(skipped, now) : skipped;
 }
 
-/** Advances past every phase whose time is up. Returns the same object if nothing changed. */
-export function tick(timer: Timer, now: number): Timer {
+/**
+ * Advances past every phase whose time is up, on into the next set when autoNextSet is on.
+ * Returns the same object if nothing changed.
+ */
+export function tick(timer: Timer, now: number, options = DEFAULT_TIMER_OPTIONS): Timer {
   if (timer.status !== 'running' || now < timer.endsAt) return timer;
 
   const { schedule } = timer;
   let { phaseIndex, endsAt } = timer;
   while (now >= endsAt) {
     phaseIndex += 1;
-    if (phaseIndex >= schedule.length) return atPhase(schedule, 0, 'finished');
+    if (phaseIndex >= schedule.length) {
+      if (!options.autoNextSet) return atPhase(schedule, 0, 'finished');
+      phaseIndex = 0;
+    }
     endsAt += phaseAt(schedule, phaseIndex).durationMs;
   }
   return running(schedule, phaseIndex, endsAt);
