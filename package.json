@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "lint:ast": "ast-grep scan && ast-grep test --skip-snapshot-tests",
-    "verify": "vp check && vp run lint:ast && vp test && vp build"
+    "verify": "vp check && vp run lint:ast && vp test && vp build",
+    "prepare": "vp config"
   },
   "devDependencies": {
     "@ast-grep/cli": "^0.51.3",

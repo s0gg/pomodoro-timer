@@ -2,6 +2,13 @@
 import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
+  // Checks on staged files, run by the pre-commit hook (.vite-hooks/pre-commit) in key order
+  staged: {
+    // Format and auto-fix, then lint and type-check
+    '*': 'vp check --fix',
+    // Project-specific rules. Each rule's files / ignores still decide where it applies
+    '*.ts': 'ast-grep scan',
+  },
   fmt: {
     singleQuote: true,
     printWidth: 100,

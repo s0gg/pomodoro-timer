@@ -32,6 +32,15 @@ vp run verify     # run the same checks as CI
 
 `vp <name>` is always the Vite+ built-in command; `vp run <name>` runs a `package.json` script.
 
+### Git hooks
+
+`vp install` sets up a pre-commit hook (via the `prepare` script, which runs `vp config`). It runs `vp staged`,
+which checks only the staged files with the `staged` block in `vite.config.ts`: `vp check --fix` (formats and auto-fixes,
+then lints and type-checks), then `ast-grep scan`. Fixes are added to the commit; any remaining error stops the commit.
+
+- `vp hooks status` shows whether the hook is active in this clone; `vp hooks enable` / `vp hooks disable` turn it on / off
+- `VP_GIT_HOOKS=0 git commit ...` skips the hook for a single commit
+
 ### Tooling
 
 All tool configuration except TypeScript and ast-grep lives in `vite.config.ts`.
