@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { beforeAll, expect, test } from 'vite-plus/test';
 import { POMODORO_SET } from '../src/schedule';
+import { DEFAULT_SETTINGS } from '../src/settings';
 import { formatVolume, VOLUME } from '../src/sound';
 import { createTimer, DEFAULT_TIMER_OPTIONS } from '../src/timer';
 import { toViewModel, type ViewModel } from '../src/view';
@@ -50,6 +51,12 @@ test('the volume slider marks the default volume', () => {
   expect(list).toBeDefined();
   const datalist = new RegExp(`<datalist id="${list}">([\\s\\S]*?)</datalist>`).exec(html)?.[1];
   expect(datalist).toContain(`<option value="${VOLUME.default}">`);
+});
+
+test('the sound checkbox matches the default', () => {
+  const tag = /<input[^>]*\sid="sound"[^>]*>/.exec(html)?.[0];
+  expect(tag).toMatch(/\stype="checkbox"/);
+  expect(/\schecked[\s/>]/.test(tag ?? '')).toBe(DEFAULT_SETTINGS.sound);
 });
 
 test('the next-set checkbox matches the default', () => {

@@ -1,5 +1,12 @@
 // Thin layer that only wires things up to the DOM. The logic lives in timer.ts / view.ts.
 import { POMODORO_SET, type PhaseType } from './schedule';
+import {
+  DEFAULT_SETTINGS,
+  parseSettings,
+  serializeSettings,
+  SETTINGS_KEY,
+  type Settings,
+} from './settings';
 import { chimeTones, formatVolume } from './sound';
 import {
   createTimer,
@@ -167,6 +174,36 @@ function notify({ title, body }: Notice): void {
   }
 }
 
+// ---- Settings -----------------------------------------------------------
+
+// localStorage can throw (e.g. when storage is disabled); then settings just are not remembered
+function loadSettings(): Settings {
+  try {
+    return parseSettings(localStorage.getItem(SETTINGS_KEY));
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+function saveSettings(): void {
+  const settings: Settings = {
+    sound: els.sound.checked,
+    volume: els.volume.valueAsNumber,
+    autoNextSet: els.autoNextSet.checked,
+  };
+  try {
+    localStorage.setItem(SETTINGS_KEY, serializeSettings(settings));
+  } catch {
+    // Not remembered, but the setting still applies until the page is closed
+  }
+}
+
+function applySettings(settings: Settings): void {
+  els.sound.checked = settings.sound;
+  els.volume.valueAsNumber = settings.volume;
+  els.autoNextSet.checked = settings.autoNextSet;
+}
+
 // ---- State updates ------------------------------------------------------
 
 type Action = (timer: Timer, now: number) => Timer;
@@ -196,6 +233,10 @@ els.primary.addEventListener('click', togglePrimary);
 els.skip.addEventListener('click', () => update((t, now) => skip(t, now, timerOptions())));
 els.reset.addEventListener('click', () => update(reset));
 
+for (const input of [els.sound, els.volume, els.autoNextSet]) {
+  input.addEventListener('change', saveSettings);
+}
+
 els.sound.addEventListener('change', renderVolume);
 els.volume.addEventListener('input', renderVolume);
 // Play the chime at the new volume once the slider is released, so you can hear how loud it is
@@ -214,6 +255,7 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('visibilitychange', () => update());
+applySettings(loadSettings());
 setInterval(() => update(), 250);
 render();
 renderVolume();
